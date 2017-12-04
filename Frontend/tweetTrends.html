@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+    <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+    <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async='async'></script>
+    <script>
+    var OneSignal = window.OneSignal || [];
+    OneSignal.push(["init", {
+	    appId: "<applicationID>",
+      autoRegister: false, /* Set to true to automatically prompt visitors */
+      notifyButton: {
+          enable: true /* Set to false to hide */
+      }
+    }]);
+    </script>
+</head>
+
+<body>
+    <nav class="navbar navbar-light bg-light">
+        <a>
+            <img src="http://www.freepngimg.com/thumb/twitter/2-2-twitter-png-file-thumb.png" class="d-inline-block align-middle" height="60" alt="">
+            <h2 class="d-inline-block align-middle"> Realtime Tweet Sentiments</h2>
+        </a>
+        <!--<h2 style="margin-left: 10px">Realtime Tweet Sentiments</h2>-->
+
+        <div class="form-inline">
+            <input id="text-1" type="text" placeholder="Search.." name="search">
+            <button id='button' class="btn btn-info" type="button">
+                <i class="glyphicon glyphicon-search"></i>
+            </button>
+        </div>
+
+    </nav>
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" role="dialog">
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <!--<button type="button" class="close" data-dismiss="modal">&times;</button>-->
+                <!--<h4 class="modal-title">Modal Header</h4>-->
+            </div>
+            <div class="modal-body">
+                <p id="joke">So how was your day?</p>
+            </div>
+            <div class="modal-footer">
+                <!--<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>-->
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    function removeMarkers() {
+        for (var i = 0; i < markers.length; i++) {
+            markers[i].setMap(null);
+        }
+    }
+
+    $(document).ready(function(){
+
+        $("#button").click(function(){
+            $('#myModal').modal('show');
+            $.get("http://numbersapi.com/random", function(data){
+                $('#joke').text("While you are waiting, do you know?\
+                "+data)
+            });
+            removeMarkers();
+            $.get('https://9lqjxok5re.execute-api.us-east-1.amazonaws.com/test?keyword='+ $("#text-1").val(), function(data) {
+                $('#myModal').modal('hide');
+                for (i = 0; i < data.length; i++) {
+                        mark(data[i].lat, data[i].lng, data[i].sentiment, data[i].text);
+                }
+
+            }).fail(function() {
+                $('#myModal').modal('hide');
+                alert( "Oops! "+$("#text-1").val()+" isn't very popular right now." );
+            });
+        });
+        $("#text-1").keyup(function(event) {
+            if (event.keyCode === 13) {
+                $("#button").click();
+            }
+        });
+    });
+
+</script>
+
+<div id="map" style="width:100%;height:500px;"></div>
+<div style="float:right; margin-right: 10px">
+    <p>©2017 Dugar & Chen</p>
+</div>
+
+
+
+<p><img src="https://images.vexels.com/media/users/3/133692/isolated/lists/c1e9e0676d7819e9ebc85cccddbc893c-los-ojos-del-coraz-n-cara-sombrero-de-santa-claus-emoticon-12.png" alt="Positive" width="50px" height="50px" align="middle">
+    : Positive<img src="https://cdn.shopify.com/s/files/1/1061/1924/products/koala_emoji_icon_png_large.png" alt="Positive" width="65px" height="50px" align="middle">
+    : Neutral<img src="https://images.vexels.com/media/users/3/143942/isolated/preview/33e316784ebe0520ccd968f20804591e-emoticon-face-emoji-by-vexels.png" alt="Positive" width="50px" height="50px" align="middle">
+    : Negative
+</p>
+
+<script>
+    var map;
+    function initMap() {
+        geocoder = new google.maps.Geocoder();
+        map = new google.maps.Map(document.getElementById('map'), {
+            center: {lat: 17.46, lng: 8.74},
+            zoom: 3
+        });
+    }
+
+</script>
+
+
+
+<script>
+    var markers = [];
+    function mark(v1, v2, v3, v4) {
+        var myLatLng = {lat: v1, lng: v2};
+        var image;
+        var positiveImage = {
+            url: "https://images.vexels.com/media/users/3/133692/isolated/lists/c1e9e0676d7819e9ebc85cccddbc893c-los-ojos-del-coraz-n-cara-sombrero-de-santa-claus-emoticon-12.png",
+//        anchor: new google.maps.Point(0, 0),
+            scaledSize: new google.maps.Size(60, 60)
+        };
+        var negativeImage = {
+            url: "https://images.vexels.com/media/users/3/143942/isolated/preview/33e316784ebe0520ccd968f20804591e-emoticon-face-emoji-by-vexels.png",
+//        anchor: new google.maps.Point(0, 0),
+            scaledSize: new google.maps.Size(40, 40)
+        };
+        var neutralImage = {
+            url: "https://cdn.shopify.com/s/files/1/1061/1924/products/koala_emoji_icon_png_large.png",
+//        anchor: new google.maps.Point(0, 0),
+            scaledSize: new google.maps.Size(50, 40)
+        };
+        if (v3 === 'negative') {
+            image = negativeImage;
+        } else if (v3 === 'positive') {
+            image = positiveImage;
+        } else if (v3 === 'neutral') {
+            image = neutralImage;
+        }
+        var marker = new google.maps.Marker({
+            icon: image,
+            position: myLatLng,
+            size: 10,
+            map: map,
+            title: v4
+        });
+        markers.push(marker);
+    }
+</script>
+
+
+<script src="https://maps.googleapis.com/maps/api/js?key=<apiKey>&callback=initMap"
+        async defer></script>
+
+</body>
+</html>
